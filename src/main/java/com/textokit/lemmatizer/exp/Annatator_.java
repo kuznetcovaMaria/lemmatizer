@@ -52,6 +52,7 @@ import com.google.common.collect.Lists;
 
 import ru.kfu.itis.issst.uima.morph.dictionary.MorphDictionaryAPI;
 import ru.kfu.itis.issst.uima.morph.dictionary.MorphDictionaryAPIFactory;
+import ru.kfu.itis.issst.uima.morph.dictionary.WordUtils;
 import ru.kfu.itis.issst.uima.morph.dictionary.resource.MorphDictionary;
 import ru.kfu.itis.issst.uima.morph.model.Wordform;
 
@@ -69,6 +70,7 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 		Collection<Word> wColl = JCasUtil.select(aJCas, Word.class);
 		Set<Word_PartOfSpeech> newCollectinWord = new HashSet<Word_PartOfSpeech>();
 		
+		
 		Word_PartOfSpeech wordPartOfSpeech;
 		iter = wColl.iterator();
 		List<Wordform> listWordform;
@@ -76,17 +78,16 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 		while (iter.hasNext()) {
 			wordPartOfSpeech = new Word_PartOfSpeech();
 			wordPartOfSpeech.setWord(iter.next());
-			
-			listWordform = mDictionary.getEntries(wordPartOfSpeech.getWord().getCoveredText());
+		
+			listWordform = mDictionary.getEntries(WordUtils.normalizeToDictionaryForm(wordPartOfSpeech.getWord().getCoveredText()));
 			Set<String> set = FSUtils.toSet((StringArrayFS)wordPartOfSpeech.getWord().getWordforms(0).getGrammems());
+			
 			iter_ = set.iterator();
 			
 			if(iter_.hasNext())
 
 				wordPartOfSpeech.setPartOfSpeech(iter_.next());
-
-			listWordform = mDictionary.getEntries(wordPartOfSpeech.getWord().getCoveredText());
-			
+		
 			if (listWordform.isEmpty() /* && i < 100 */) {
 				newCollectinWord.add(wordPartOfSpeech);
 				i++;
@@ -106,11 +107,10 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 	public void showNewCollectionWord(Set<Word_PartOfSpeech> newCollectinWord)
 			throws IOException {
 		Iterator<Word_PartOfSpeech> iter = newCollectinWord.iterator();
-		System.out.println("newCollectinWord.Size  = "
-				+ newCollectinWord.size());
+
 		while (iter.hasNext()) {
 			Word_PartOfSpeech wordPartOfSpeech = iter.next();
-			outputFile.write(wordPartOfSpeech.getWord().getCoveredText()+" ");
+			outputFile.write(WordUtils.normalizeToDictionaryForm(wordPartOfSpeech.getWord().getCoveredText())+" ");
 			outputFile.write(wordPartOfSpeech.getPartOfSpeech());
 			outputFile.newLine();
 			outputFile.flush();
