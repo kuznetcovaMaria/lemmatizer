@@ -61,36 +61,38 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 	private MorphDictionary mDictionary;
 	private BufferedWriter outputFile;
 
+	public static final String PARAM_SOURCE_DIRECTORY = "sourceDirectory";
+	private FileWriter sourceDirectory;
+
 	@Override
 	public void process(JCas aJCas) {
 
-		Iterator<Word> iter;
 		Iterator<String> iter_;
-		
+
 		Collection<Word> wColl = JCasUtil.select(aJCas, Word.class);
 		Set<Word_PartOfSpeech> newCollectinWord = new HashSet<Word_PartOfSpeech>();
-		
-		
-		Word_PartOfSpeech wordPartOfSpeech;
-		iter = wColl.iterator();
-		List<Wordform> listWordform;
-		int i = 0;
-		while (iter.hasNext()) {
-			wordPartOfSpeech = new Word_PartOfSpeech();
-			wordPartOfSpeech.setWord(iter.next());
-		
-			listWordform = mDictionary.getEntries(WordUtils.normalizeToDictionaryForm(wordPartOfSpeech.getWord().getCoveredText()));
-			Set<String> set = FSUtils.toSet((StringArrayFS)wordPartOfSpeech.getWord().getWordforms(0).getGrammems());
-			
-			iter_ = set.iterator();
-			
-			if(iter_.hasNext())
 
+		Word_PartOfSpeech wordPartOfSpeech;
+		List<Wordform> listWordform;
+
+		for (Word word : wColl) {
+			wordPartOfSpeech = new Word_PartOfSpeech();
+			wordPartOfSpeech.setWord(word);
+			
+			listWordform = mDictionary.getEntries(WordUtils
+					.normalizeToDictionaryForm(wordPartOfSpeech.getWord()
+							.getCoveredText()));
+			Set<String> set = FSUtils.toSet((StringArrayFS) wordPartOfSpeech
+					.getWord().getWordforms(0).getGrammems());
+
+			iter_ = set.iterator();
+
+			if (iter_.hasNext())
 				wordPartOfSpeech.setPartOfSpeech(iter_.next());
-		
-			if (listWordform.isEmpty() /* && i < 100 */) {
+
+			if (listWordform.isEmpty()) {
 				newCollectinWord.add(wordPartOfSpeech);
-				i++;
+				//System.out.println(wordPartOfSpeech);
 			}
 		}
 		try {
@@ -99,18 +101,17 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-	
-		
+
 	}
 
-	public void showNewCollectionWord(Set<Word_PartOfSpeech> newCollectinWord)
+	public void showNewCollectionWord(Set<Word_PartOfSpeech> newCollectionWord)
 			throws IOException {
-		Iterator<Word_PartOfSpeech> iter = newCollectinWord.iterator();
-
-		while (iter.hasNext()) {
-			Word_PartOfSpeech wordPartOfSpeech = iter.next();
-			outputFile.write(WordUtils.normalizeToDictionaryForm(wordPartOfSpeech.getWord().getCoveredText())+" ");
+		for (Word_PartOfSpeech str : newCollectionWord) {
+			Word_PartOfSpeech wordPartOfSpeech = str;
+			outputFile.write(WordUtils
+					.normalizeToDictionaryForm(wordPartOfSpeech.getWord()
+							.getCoveredText())
+					+ " ");
 			outputFile.write(wordPartOfSpeech.getPartOfSpeech());
 			outputFile.newLine();
 			outputFile.flush();
@@ -134,15 +135,21 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 		MorphDictionaryAPI mDictionaryAPI = MorphDictionaryAPIFactory
 				.getMorphDictionaryAPI();
 		try {
-			mDictionary = mDictionaryAPI.getCachedInstance().getResource();
-			
-			outputFile = new BufferedWriter(new FileWriter(
-					"D:\\newCollectionWord\\newCollectionWord.txt", false));		
-			
+			sourceDirectory = new FileWriter(
+					(String) aContext
+							.getConfigParameterValue(PARAM_SOURCE_DIRECTORY),
+					false);
+			 outputFile = new BufferedWriter(sourceDirectory);
+			try {
+				mDictionary = mDictionaryAPI.getCachedInstance().getResource();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
 
-		} catch (Exception e) {
+		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e1.printStackTrace();
 		}
 
 	}
