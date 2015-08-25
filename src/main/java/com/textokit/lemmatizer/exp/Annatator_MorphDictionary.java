@@ -31,29 +31,22 @@ import ru.kfu.itis.issst.uima.morph.model.Wordform;
 public class Annatator_MorphDictionary extends JCasAnnotator_ImplBase {
 
 	private Map<Struct_TransformationPartOfSpeech, Integer> dictionaryTransformationSort;
-	private BufferedWriter outputFile;
-
+	
+	public static final String PARAM_SOURCE_DIRECTORY = "sourceDirectory";
+	private FileInputStream sourceDirectory;
+	
 	public void initialize(UimaContext aContext) {
 
 		try {
-			outputFile = new BufferedWriter(new FileWriter(
-					"D:\\newCollectionWord\\test\\newWord.txt", false));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}	
-		FileInputStream fis;
-		try {
-			fis = new FileInputStream(
-					"D:\\newCollectionWord\\out.txt");
-			ObjectInputStream oin = new ObjectInputStream(fis);
-
+			sourceDirectory = new FileInputStream(
+					(String) aContext
+							.getConfigParameterValue(PARAM_SOURCE_DIRECTORY));
+			ObjectInputStream oin = new ObjectInputStream(sourceDirectory);
+	
 			Map<Struct_TransformationPartOfSpeech, Integer> morphDictinary = new HashMap<Struct_TransformationPartOfSpeech, Integer>();
 			morphDictinary = (Map<Struct_TransformationPartOfSpeech, Integer>) oin
 					.readObject();
 			dictionaryTransformationSort = sortMap(morphDictinary);
-
-
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -61,7 +54,6 @@ public class Annatator_MorphDictionary extends JCasAnnotator_ImplBase {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 
 	}
 
@@ -70,16 +62,12 @@ public class Annatator_MorphDictionary extends JCasAnnotator_ImplBase {
 		// TODO Auto-generated method stub
 
 		Collection<Word> wordFormColl = JCasUtil.select(aJCas, Word.class);
-		Set<Word_PartOfSpeech> newCollectinWord = new HashSet<Word_PartOfSpeech>();
-		Iterator iter = wordFormColl.iterator();
-		Word_PartOfSpeech wordPartOfSpeech;
-
 		Iterator iter_;
 
-		
-		while (iter.hasNext()) {
+		for (Word str : wordFormColl) {
 			String wf = "", pos = "", lemma = "";
-			Word word = (Word) iter.next();
+
+			Word word = (Word) str;
 			wf = word.getCoveredText();
 
 			Set<String> set = FSUtils.toSet((StringArrayFS) word
@@ -88,51 +76,33 @@ public class Annatator_MorphDictionary extends JCasAnnotator_ImplBase {
 			iter_ = set.iterator();
 			if (iter_.hasNext())
 				pos = (String) iter_.next();
-			
+
 			// если леммы нет, то
-			//if (!word.getWordforms(0).getLemma().isEmpty()) {
+			if (!word.getWordforms(0).getLemma().isEmpty()) {
 				NonDictionaryWordLemmatizer lemmatizer = new NonDictionaryWordLemmatizer(
 						dictionaryTransformationSort);
-				
-						lemma = lemmatizer.nonDictiomaryWordLemmatizer(wf, pos);
-			//}
-						newCollectinWord.add(new Word_PartOfSpeech(wf, pos, lemma));
-		}
-		try {
-			showNewCollectionWord(newCollectinWord);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+
+				lemma = lemmatizer.nonDictiomaryWordLemmatizer(wf, pos);
+				str.getWordforms(0).setLemma(lemma);
+			}
+
 		}
 
 	}
-	public void showNewCollectionWord(Set<Word_PartOfSpeech> newCollectinWord )
-			throws IOException {
-		Iterator<Word_PartOfSpeech> iter = newCollectinWord.iterator();
 
-		while (iter.hasNext()) {
-			Word_PartOfSpeech wordPartOfSpeech = iter.next();
-			outputFile.write(wordPartOfSpeech.getStringWord()+"  "+wordPartOfSpeech.getLemma()+"  "+wordPartOfSpeech.getPartOfSpeech());
-			outputFile.newLine();
-			outputFile.flush();
-		}
-	}
 	@Override
 	public void collectionProcessComplete()
 			throws AnalysisEngineProcessException {
 		// TODO Auto-generated method stub
 		super.collectionProcessComplete();
-		try {
-			outputFile.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
+
 	public static Map<Struct_TransformationPartOfSpeech, Integer> sortMap(
 			final Map<Struct_TransformationPartOfSpeech, Integer> map) {
 		Map<Struct_TransformationPartOfSpeech, Integer> sortedMap = new TreeMap<>(
-				new Comparator<Struct_TransformationPartOfSpeech>() {
+				new Comparator<Struct_TransformationPartOfSpeech>()
+
+				{
 					@Override
 					public int compare(Struct_TransformationPartOfSpeech lhs,
 							Struct_TransformationPartOfSpeech rhs) {

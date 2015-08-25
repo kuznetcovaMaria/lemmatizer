@@ -134,24 +134,24 @@ public class Annatator_ extends JCasAnnotator_ImplBase {
 	public void initialize(UimaContext aContext) {
 		MorphDictionaryAPI mDictionaryAPI = MorphDictionaryAPIFactory
 				.getMorphDictionaryAPI();
+		
 		try {
 			sourceDirectory = new FileWriter(
 					(String) aContext
 							.getConfigParameterValue(PARAM_SOURCE_DIRECTORY),
 					false);
-			 outputFile = new BufferedWriter(sourceDirectory);
-			try {
-				mDictionary = mDictionaryAPI.getCachedInstance().getResource();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}	
-
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
+		 outputFile = new BufferedWriter(sourceDirectory);
+		 try {
+			mDictionary = mDictionaryAPI.getCachedInstance().getResource();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		 
 	}
 
 }

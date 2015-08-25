@@ -53,9 +53,9 @@ public class MainMorphDictionaryAnnatator {
 		CollectionReader reader = UIMAFramework
 				.produceCollectionReader(colReaderDesc);
 		AnalysisEngine remotePreprocessor = (AnalysisEngine) _remotePreprocessor;
-
+        String fileName = "D:\\newCollectionWord\\out.txt";
 		AnalysisEngine myAnnotator = AnalysisEngineFactory
-				.createEngine(Annatator_MorphDictionary.class);
+				.createEngine(Annatator_MorphDictionary.class, Annatator_MorphDictionary.PARAM_SOURCE_DIRECTORY, fileName);
 
 		JCasIterator i = new JCasIterator(reader, remotePreprocessor, myAnnotator);
 
